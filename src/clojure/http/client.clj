@@ -42,13 +42,31 @@ representation of argument, either a string or map."
     (.close out)))
 
 (defn url
-  "If u is an instance of java.net.URL then returns it without
-modification, otherwise tries to instantiate a java.net.URL with
-url as its sole argument."
-  [u]
-  (if (instance? URL u)
-    u
-    (URL. u)))
+  "Returns java.net.URL from args. With one argument, takes URL 
+object or string; with two arguments, takes (1) URL or string 
+& (2) query (as map or string); with three or more arguments, takes
+either (1) URL or string, (2) query, & (3) fragment, or accepts
+keyword arguments for :query & :fragment.
+
+E.g.
+  (url \"http://www.google.com/\")
+  (url \"http://www.google.com/search\" {:q \"clojure\"})
+    ; http://www.google.com/search?q=clojure
+  (url \"http://www.google.com/search\" {:q \"clojure\"} \"nav\")
+    ; http://www.google.com/search?q=clojure#nav
+  (url \"http://daringfireball.net\" :fragment \"Footer\")
+    ; http://daringfireball.net#Footer
+
+Queries & fragments are url-encoded."
+  ([u] (if (instance? URL u) u (URL. u)))
+  ([u query] (URL. (str u \? (url-encode query))))
+  ([u opt & opts]
+   (if-not (keyword? opt)
+     (URL. (str u \? (url-encode opt) \# (url-encode (first opts))))
+     (let [opts (apply hash-map (cons opt opts))
+           query (when-let [q (:query opts)]     (str \? (url-encode q)))
+           frag  (when-let [f (:fragment opts)]  (str \# (url-encode f)))]
+       (URL. (str u query frag))))))
 
 (defn- body-seq
   "Returns a lazy-seq of lines from either the input stream
