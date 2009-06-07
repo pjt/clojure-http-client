@@ -42,22 +42,14 @@ representation of argument, either a string or map."
     (.close out)))
 
 (defn url
-  "Returns java.net.URL from args. With one argument, takes URL 
-object or string; with two arguments, takes (1) URL or string 
-& (2) query (as map or string); with three or more arguments, takes
-either (1) URL or string, (2) query, & (3) fragment, or accepts
-keyword arguments for :query & :fragment.
-
-E.g.
-  (url \"http://www.google.com/\")
-  (url \"http://www.google.com/search\" {:q \"clojure\"})
-    ; http://www.google.com/search?q=clojure
-  (url \"http://www.google.com/search\" {:q \"clojure\"} \"nav\")
-    ; http://www.google.com/search?q=clojure#nav
-  (url \"http://daringfireball.net\" :fragment \"Footer\")
-    ; http://daringfireball.net#Footer
-
-Queries & fragments are url-encoded."
+  "Returns java.net.URL from args. First, required, arg is a string or
+URL object; optional keyword args for :query & :fragment are accepted.
+E.g. (url url-base :query {:debug true} :fragment \"footer\"). Queries 
+& fragments are url-encoded.
+  
+As shortcuts, when url is called with 2 arguments they are interpreted as 
+<url-arg>, <query>; when called with 3, they are interpreted as <url-arg>, 
+<query>, <fragment>, with no need for the :query & :fragment keywords."
   ([u] (if (instance? URL u) u (URL. u)))
   ([u query] (URL. (str u \? (url-encode query))))
   ([u opt & opts]
